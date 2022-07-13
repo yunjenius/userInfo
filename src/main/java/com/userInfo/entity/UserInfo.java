@@ -17,11 +17,11 @@ import javax.persistence.Id;
 public class UserInfo {
 
     @Id
-    private String userEmail;
+    private String userPhone;
 
+    private String userEmail;
     private String userNickname;
     private String userPwd;
     private String userName;
-    private String userPhone;
 
 }
