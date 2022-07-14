@@ -32,13 +32,18 @@ public class UserInfoService {
 
     public String checkUserEmail(String userEmail) {
         UserInfoDto user = UserInfoDto.fromEntity(getUserInfoByEmail(userEmail));
-        if (!"none".equals(user.getUserPhone())) return "fail";
+
+        if (!"none".equals(user.getUserPhone())) throw new UserInfoException(DUPLICATED_USER_EMAIL);
 
         return "success";
     }
 
     @Transactional
     public CreateUserInfo.Response createUser(CreateUserInfo.Request request) {
+        UserInfoDto user = UserInfoDto.fromEntity(getUserInfoByEmail(request.getUserEmail()));
+
+        if (!"none".equals(user.getUserPhone())) throw new UserInfoException(DUPLICATED_USER_INFO);
+
         return CreateUserInfo.Response.fromEntity(
                 userInfoRepository.save(createUserFromRequest(request))
         );
@@ -56,6 +61,9 @@ public class UserInfoService {
 
     @Transactional
     public UserInfoDto updateUserPwd(String userEmail, EditUserInfo.Request request) {
+        UserInfoDto user = UserInfoDto.fromEntity(getUserInfoByEmail(userEmail));
+        if ("none".equals(user.getUserPhone())) throw new UserInfoException(NO_USER_INFO);
+
         return UserInfoDto.fromEntity(
                 getUpdateUserInfoFromRequest(
                         request, getUserInfoByEmail(userEmail)
@@ -83,7 +91,11 @@ public class UserInfoService {
 
     @Transactional(readOnly = true)
     public UserInfoDto getUserInfo(String userEmail) {
-        return UserInfoDto.fromEntity(getUserInfoByEmail(userEmail));
+        UserInfoDto user = UserInfoDto.fromEntity(getUserInfoByEmail(userEmail));
+
+        if ("none".equals(user.getUserPhone())) throw new UserInfoException(NO_USER_INFO);
+
+        return user;
     }
 
     private UserInfo getUserInfoByEmail(String email) {
@@ -99,5 +111,6 @@ public class UserInfoService {
                         .userPhone("none")
                         .build());
     }
+
 
 }
