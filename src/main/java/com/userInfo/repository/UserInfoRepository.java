@@ -3,9 +3,11 @@ package com.userInfo.repository;
 import com.userInfo.entity.UserInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface UserInfoRepository extends JpaRepository<UserInfo, Long> {
-    UserInfo findByUserPhone(String userPhone);
+import java.util.Optional;
 
-    UserInfo findByUserEmail(String userEmail);
+public interface UserInfoRepository extends JpaRepository<UserInfo, Long> {
+    Optional<UserInfo> findByUserPhone(String userPhone);
+
+    Optional<UserInfo> findByUserEmail(String userEmail);
 
 }

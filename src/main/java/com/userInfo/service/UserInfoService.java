@@ -21,28 +21,24 @@ public class UserInfoService {
     private final UserInfoRepository userInfoRepository;
 
     public int authUserPhone(String chkOption, String userPhone) {
-        UserInfoDto user = UserInfoDto.fromEntity(userInfoRepository.findByUserPhone(userPhone));
+        UserInfoDto user = UserInfoDto.fromEntity(getUserInfoByPhone(userPhone));
 
-        if ("J".equals(chkOption) && user != null) throw new UserInfoException(DUPLICATED_USER_INFO);
-        if ("R".equals(chkOption) && user == null) throw new UserInfoException(NO_USER_INFO);
+        if ("J".equals(chkOption) && !"none".equals(user.getUserPhone()))
+            throw new UserInfoException(DUPLICATED_USER_INFO);
+        if ("R".equals(chkOption) && "none".equals(user.getUserPhone())) throw new UserInfoException(NO_USER_INFO);
 
-        return (int) (Math.random() * (99999 - 10000 + 1)) + 10000;
+        return (int) (Math.random() * (999999 - 100000 + 1)) + 100000;
     }
 
     public String checkUserEmail(String userEmail) {
-        UserInfoDto user = UserInfoDto.fromEntity(userInfoRepository.findByUserEmail(userEmail));
-
-        if (user != null) throw new UserInfoException(DUPLICATED_USER_INFO);
+        UserInfoDto user = UserInfoDto.fromEntity(getUserInfoByEmail(userEmail));
+        if (!"none".equals(user.getUserPhone())) return "fail";
 
         return "success";
     }
 
     @Transactional
     public CreateUserInfo.Response createUser(CreateUserInfo.Request request) {
-        UserInfoDto user = UserInfoDto.fromEntity(userInfoRepository.findByUserEmail(request.getUserEmail()));
-
-        if (user != null) throw new UserInfoException(DUPLICATED_USER_EMAIL);
-
         return CreateUserInfo.Response.fromEntity(
                 userInfoRepository.save(createUserFromRequest(request))
         );
@@ -59,9 +55,11 @@ public class UserInfoService {
     }
 
     @Transactional
-    public UserInfoDto resetUserPwd(String userEmail, EditUserInfo.Request request) {
+    public UserInfoDto updateUserPwd(String userEmail, EditUserInfo.Request request) {
         return UserInfoDto.fromEntity(
-                getUpdateUserInfoFromRequest(request, userInfoRepository.findByUserEmail(userEmail))
+                getUpdateUserInfoFromRequest(
+                        request, getUserInfoByEmail(userEmail)
+                )
         );
     }
 
@@ -71,21 +69,35 @@ public class UserInfoService {
     }
 
     @Transactional(readOnly = true)
-    public LoginUserInfo.Response loginUser(LoginUserInfo.Request request) {
-        LoginUserInfo.Response userInfo = ("E".equals(request.getLoginOption())) ?
-                LoginUserInfo.Response.fromEntity(userInfoRepository.findByUserEmail(request.getUserEmail()))
-                : LoginUserInfo.Response.fromEntity(userInfoRepository.findByUserPhone(request.getUserPhone()));
+    public UserInfoDto loginUser(LoginUserInfo.Request request) {
+        UserInfoDto user = "P".equals(request.getLoginOption()) ?
+                UserInfoDto.fromEntity(getUserInfoByPhone(request.getUserPhone()))
+                : UserInfoDto.fromEntity(getUserInfoByEmail(request.getUserEmail()));
 
-        if (userInfo == null) throw new UserInfoException(NO_USER_INFO);
-        if (!request.getUserPwd().equals(userInfo.getUserPwd())) throw new UserInfoException(WRONG_PASSWORD);
+        if ("none".equals(user.getUserPhone())) throw new UserInfoException(NO_USER_INFO);
 
-        return userInfo;
+        if (!request.getUserPwd().equals(user.getUserPwd())) throw new UserInfoException(WRONG_PASSWORD);
+
+        return user;
     }
 
     @Transactional(readOnly = true)
     public UserInfoDto getUserInfo(String userEmail) {
-        return UserInfoDto.fromEntity(userInfoRepository.findByUserEmail(userEmail));
+        return UserInfoDto.fromEntity(getUserInfoByEmail(userEmail));
     }
 
+    private UserInfo getUserInfoByEmail(String email) {
+        return userInfoRepository.findByUserEmail(email)
+                .orElse(UserInfo.builder()
+                        .userPhone("none")
+                        .build());
+    }
+
+    private UserInfo getUserInfoByPhone(String phone) {
+        return userInfoRepository.findByUserPhone(phone)
+                .orElse(UserInfo.builder()
+                        .userPhone("none")
+                        .build());
+    }
 
 }

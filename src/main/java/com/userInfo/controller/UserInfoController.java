@@ -45,11 +45,11 @@ public class UserInfoController {
             @PathVariable final String userEmail,
             @Valid @RequestBody final EditUserInfo.Request request
     ) {
-        return userInfoService.resetUserPwd(userEmail, request);
+        return userInfoService.updateUserPwd(userEmail, request);
     }
 
     @PostMapping("/login")
-    public LoginUserInfo.Response loginUser(
+    public UserInfoDto loginUser(
             @Valid @RequestBody final LoginUserInfo.Request request
     ) {
         return userInfoService.loginUser(request);
