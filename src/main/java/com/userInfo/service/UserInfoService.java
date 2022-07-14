@@ -60,13 +60,13 @@ public class UserInfoService {
     }
 
     @Transactional
-    public UserInfoDto updateUserPwd(String userEmail, EditUserInfo.Request request) {
-        UserInfoDto user = UserInfoDto.fromEntity(getUserInfoByEmail(userEmail));
+    public UserInfoDto updateUserPwd(String userPhone, EditUserInfo.Request request) {
+        UserInfoDto user = UserInfoDto.fromEntity(getUserInfoByPhone(userPhone));
         if ("none".equals(user.getUserPhone())) throw new UserInfoException(NO_USER_INFO);
 
         return UserInfoDto.fromEntity(
                 getUpdateUserInfoFromRequest(
-                        request, getUserInfoByEmail(userEmail)
+                        request, getUserInfoByPhone(userPhone)
                 )
         );
     }

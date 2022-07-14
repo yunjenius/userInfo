@@ -40,12 +40,12 @@ public class UserInfoController {
         return userInfoService.createUser(request);
     }
 
-    @PutMapping("/resetPwd/{userEmail}")
+    @PutMapping("/resetPwd/{userPhone}")
     public UserInfoDto resetUserPwd(
-            @PathVariable final String userEmail,
+            @PathVariable final String userPhone,
             @Valid @RequestBody final EditUserInfo.Request request
     ) {
-        return userInfoService.updateUserPwd(userEmail, request);
+        return userInfoService.updateUserPwd(userPhone, request);
     }
 
     @PostMapping("/login")
